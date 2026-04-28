@@ -44,8 +44,8 @@ export function createToolExecuteBefore(shouldWrap: (cmd: string) => Promise<boo
     if (!command || typeof command !== "string") return
     if (command.startsWith("snip ")) return
 
-    if (findFirstPipe(command) !== -1) {
-      const pipeIdx = findFirstPipe(command)
+    const pipeIdx = findFirstPipe(command)
+    if (pipeIdx !== -1) {
       const firstCmd = command.slice(0, pipeIdx).trimEnd()
       const rest = command.slice(pipeIdx)
       output.args.command = (await snipCommand(firstCmd, shouldWrap)) + ' ' + rest
@@ -80,7 +80,8 @@ export const SnipPlugin: Plugin = async ({ $ }) => {
     try {
       const result = await $`snip check -- ${{raw: cmd}}`.nothrow().quiet()
       return result.exitCode === 0
-    } catch {
+    } catch (err) {
+      console.warn("[snip] snip check failed for %o: %o", cmd, err)
       return false
     }
   }
